@@ -47,12 +47,20 @@ namespace TranTienDatWPF
         {
             try
             {
-                var productList = iProductService.GetProducts();
+                var productList = iProductService.GetProducts()
+                    .Select(p => new ProductDisplay
+                    {
+                        ProductId = p.ProductId,
+                        ProductName = p.ProductName,
+                        UnitPrice = p.UnitPrice ?? 0,
+                        UnitsInStock = p.UnitsInStock ?? 0,
+                        CategoryName = p.Category?.CategoryName ?? "N/A"
+                    }).ToList();
                 dgData.ItemsSource = productList;
             }
             catch (Exception ex)
             {
-               // MessageBox.Show(ex.Message, "Error on load list of products: ");
+                MessageBox.Show(ex.Message, "Error on load list of products: ");
             }
             finally
             {
@@ -150,7 +158,7 @@ namespace TranTienDatWPF
         }
         private void dgData_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            DataGrid dataGrid = sender as DataGrid;
+            /*DataGrid dataGrid = sender as DataGrid;
             DataGridRow row = (DataGridRow)dataGrid.ItemContainerGenerator.ContainerFromIndex(dataGrid.SelectedIndex);
             DataGridCell RowColumn = dataGrid.Columns[0].GetCellContent(row).Parent as DataGridCell;
             string id = ((TextBlock)RowColumn.Content).Text;
@@ -160,7 +168,21 @@ namespace TranTienDatWPF
             txtProductName.Text = product.ProductName;
             txtPrice.Text = product.UnitPrice.ToString();
             txtUnitsInStock.Text = product.UnitsInStock.ToString();
-            cboCategory.SelectedValue = product.CategoryId;
+            cboCategory.SelectedValue = product.CategoryId;*/
+            if (dgData.SelectedItem is ProductDisplay display)
+            {
+                txtProductID.Text = display.ProductId.ToString();
+                txtProductName.Text = display.ProductName;
+                txtPrice.Text = display.UnitPrice.ToString();
+                txtUnitsInStock.Text = display.UnitsInStock.ToString();
+
+                var category = iCategoryService.GetCategories()
+                                .FirstOrDefault(c => c.CategoryName == display.CategoryName);
+                if (category != null)
+                {
+                    cboCategory.SelectedValue = category.CategoryId;
+                }
+            }
         }
         private void btnClose_Click(object sender, RoutedEventArgs e)
         {
